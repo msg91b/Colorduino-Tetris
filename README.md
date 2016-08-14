@@ -11,7 +11,7 @@ This code was written and tested on Arduino IDE 1.0.1 and used the Arduino Uno.
 1. Upload the colorduino_i2c_firmware to each Colorduino specifying the I2C address on line 22. Each device needs it's own I2C address.
 2. Upload the colorduino_tetris code to the Arduino.
 3. Connect the wires accordingly: 
-        Arduino ->  Colorduino
+        Arduino ->  Colorduino \n
         A4      ->  SDA
         A5      ->  SCL
         RESET   ->  DTR
