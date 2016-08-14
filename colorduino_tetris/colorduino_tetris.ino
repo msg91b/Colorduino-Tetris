@@ -158,7 +158,7 @@ void setup()
   TriggerSound();
   
   Wire.begin(1); // join i2c bus (address optional for master) 
-
+  
   int seed = 
   (analogRead(0)+1)*
   (analogRead(1)+1)*
@@ -203,7 +203,7 @@ void loop()
   else if (button == 4)
     movedown();
     
-  updateDisp();
+  createDisplayPacket();
 }
 
 
@@ -764,9 +764,24 @@ void gameover()
   int j;
 
   gameoverFlag = true;
-  startTime = millis();       
-       
-  delay(300);       
+  startTime = millis();
+  
+  for (int count = 0; count < 20; count++) {
+    for (int x = 0; x < 8; x++) {
+      for (int y = 0; y < 8; y++) {
+        display(x, y, random(255), random(255), random(255));
+      }
+    }
+    update_display(DEST_I2C_ADDR);
+    for (int x = 0; x < 8; x++) {
+      for (int y = 8; y < 16; y++) {
+        display(x, y, random(255), random(255), random(255));
+      }
+    }
+    update_display(DEST_I2C_ADDR2);
+  }
+
+  displayClear();     
             
   while(true)      //To re-play if any buttons depressed again
   {      
@@ -780,10 +795,10 @@ void gameover()
           pile[j][i]=0;
         }             
       }
-    
+      
       break;
     }  
-  }  
+  }
 }
 
 
@@ -1007,34 +1022,49 @@ boolean space_right3()
   return true;
 }
 
+void displayClear() 
+{
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      display(i, j, 0, 0, 0);
+    }
+  }
+  update_display(DEST_I2C_ADDR);
+  
+  for (int i = 0; i < 8; i++) {
+    for (int j = 8; j < 16; j++) {
+      display(i, j, 0, 0, 0); 
+    }
+  }
+  update_display(DEST_I2C_ADDR2);
+}
 
-void updateDisp()
+
+void createDisplayPacket()
 { 
-    clearLines();
-    updateLED(); 
+  updateLED(); 
+  for (int i = 0; i < 8; i++) {
+    for (int j = 0; j < 8; j++) {
+      if (disp[i][j] != 0) { 
+        colorSelect(i, j, disp[i][j]);
+      }
+      else  {
+        display(i, j, 0, 0, 0);   
+      }
+    }
+  }
+  update_display(DEST_I2C_ADDR); 
     
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-        if (disp[i][j] != 0) { 
-          colorSelect(i, j, disp[i][j]);
-        }
-        else  {
-          display(i, j, 0, 0, 0);   
-        }
+  for(int i = 0; i < 8; i++) {
+    for (int j = 8; j < 16; j++) {
+      if(disp[i][j] != 0) {
+        colorSelect(i, j, disp[i][j]);
       }
+      else
+        display(i, j, 0, 0, 0);
     }
-    update_display(DEST_I2C_ADDR); 
-      
-    for(int i = 0; i < 8; i++) {
-      for (int j = 8; j < 16; j++) {
-        if(disp[i][j] != 0) {
-          colorSelect(i, j, disp[i][j]);
-        }
-        else
-          display(i, j, 0, 0, 0);
-      }
-    }
-    update_display(DEST_I2C_ADDR2);
+  }
+  update_display(DEST_I2C_ADDR2);
 }
 
 
@@ -1061,26 +1091,6 @@ void colorSelect(int i, int j, int color)
    
     else
       display(i, j, red.r, red.g, red.b);
-}
-
-
-//**********************************************************************************************************************************************************
-boolean line = true;
-void clearLines()
-{
-  for (int j = 0; j < 16; j++) {
-    for (int i = 0; i < 8 && line; i++) {
-      if ((i == 7 && pile[j][i] > 0) || pile[j][i] >0)
-          line = true;
-      else
-         line = false;
-    }
-    if (line == true) {
-       for (int k = 0; k < 8; k++) {
-          pile[k][j] = 0;  
-       }
-    }
-  }    
 }
 
 
